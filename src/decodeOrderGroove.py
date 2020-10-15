@@ -23,14 +23,14 @@ import smtplib
 # ##  All of the files are treated as a Csv, whether they are true CSVs or not.
 # ## The reason for this is so that if a file needs more columns we have that ability
 def open_csv(fname, t="r"):
-    """Function to open a file"""
-	fhand = open(fname, t)
-	csvfile = csv.reader(fhand)
-	return csvfile
+    """ Function to open a file """
+    fhand = open(fname, t)
+    csvfile = csv.reader(fhand)
+    return csvfile
 
 
 def trace(level, string):
-    """Trace function"""
+    """ Trace function """
     if level <= int(config.get('Debug', 'LogLevel')):
         print('%s' % string)
         sys.stdout.flush()
@@ -42,26 +42,32 @@ def trace(level, string):
 
 
 def decodeOrderGroove(input_file):
-	ogcsv = open_file(input_file)
- 	for row in ogcsv:
-		try:
+    """ Decode OrderGroove function """
+    ogcsv = open_csv(input_file)
+    for row in ogcsv:
+        try:
             if len(row) > 0:
                 term = row[0].strip()
-        except ValueError , error:
+            else:
+                trace(3, "Row length was 0")
+        except ValueError as error:
             print(error)
 
+# ## Output Writer
+
+
 def writeOutput(dictionary, ofile):
-    """Function that will write the output file for Cybersource """
-    f = open_file(ofile, 'w')
+    """ Function that will write the output file for Cybersource """
+    f = open_csv(ofile, 'w')
     # Need to get the header string
     # Note must have number of records
-    s = getHeader(len(dictionary))
-    f.write('%s' % s)
-    s = getCsvColums()
-    f.write('%s' % s)
-    s = getRecords()
-    f.write('%s' % s)
-    f.close()
+    # s = getHeader(len(dictionary))
+    # f.write('%s' % s)
+    # s = getCsvColums()
+    # f.write('%s' % s)
+    # s = getRecords()
+    # f.write('%s' % s)
+    # f.close()
     trace(2, 'File was writen with %s' % s)
 
 
@@ -79,5 +85,4 @@ if __name__ == '__main__':
     decodedDictionary = decodeOrderGroove(inputfile)
 
     # Write output file
-    writeOutput(decodedDictionary,outputfile)
-
+    writeOutput(decodedDictionary, outputfile)
