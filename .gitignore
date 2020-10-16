@@ -130,3 +130,9 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+#Misc
+*.docx
+*.csv
+*.xml
+.DS_Store 
