@@ -12,11 +12,11 @@ and then create file to be sent to OrderGroove for processing
 
 import configparser
 import csv
-import os
-import re
+# import os
+# import re
 import sys
-import time  # For PYthon 2.4
-import smtplib
+# import time  # For PYthon 2.4
+# import smtplib
 
 
 # ## Function to open a file as a csv
@@ -38,7 +38,27 @@ def trace(level, string):
 
 def decodeCardType(string):
     """ Mapping function that converts card types into Cybersource numbers """
-    if(string.equals)
+    cardtype = string.strip().lower()
+    typecode = "-1"
+    if cardtype == "visa":
+        typecode = "001"
+    elif cardtype == "mastercard" or cardtype == "eurocard":
+        typecode = "002"
+    elif cardtype == "american express":
+        typecode = "003"
+    elif cardtype == "discover":
+        typecode = "004"
+    elif cardtype == "diners club":
+        typecode = "005"
+    elif cardtype == "carte blanche":
+        typecode = "006"
+    elif cardtype == "jcb":
+        typecode = "007"
+    else:
+        trace(1, "ERROR! Credit Card Type does not match!")
+        raise ValueError("Credit Card Type does not match!")
+    return typecode
+
 
 # ## This is the main decode function
 # ## It starts off reading in the csv file provided by Order Groove
