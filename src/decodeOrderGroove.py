@@ -15,6 +15,8 @@ import csv
 # import os
 # import re
 import sys
+import base64
+from Crypto.Cipher import AES
 # import time  # For PYthon 2.4
 # import smtplib
 
@@ -60,47 +62,89 @@ def decodeCardType(string):
     return typecode
 
 
+def decodeCardExpDate(string):
+    """ Function to strip and split month as a list"""
+    try:
+        l = string.strip().split("/")
+        if len(l) != 2:
+            raise ValueError("\'%s\' is an invalid month year." % string)
+        else:
+            return l
+    except Exception as e:
+        raise e
+
+
+def decryptOrderGroove(cipher, encrypted_string):
+    """ Function to decrypt data from OrderGroove using it's cipher """
+    PADDING = '{'
+    try:
+        return cipher.decrypt(base64.b64decode(encrypted_string)).decode('ascii').rstrip(PADDING)
+    except Exception as e:
+        raise e
+
+
+def formatCyberSourceRecord(dict):
+    """ Function to format a dictionary as a CSV record for Cybersource"""
+    try:
+        s = "TRUE, ogsub%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s\n" % (dict["ogsubid"], dict["ogsubid"],
+                                                                                                 dict["enc_cc_exp_date"], dict["billTo_firstName"],
+                                                                                                 dict["billTo_lastName"], dict["billTo_street1"],
+                                                                                                 dict["billTo_street2"], dict["billTo_city"],
+                                                                                                 dict["billTo_state"], dict["billTo_postalCode"],
+                                                                                                 dict["billTo_country"], dict["billTo_phoneNumber"],
+                                                                                                 dict["billTo_email"], dict["card_accountNumber"],
+                                                                                                 dict["card_expirationMonth"],
+                                                                                                 dict["card_expirationYear"], dict["card_cardType"])
+        return s
+    except Exception as e:
+        raise e
+
+
 # ## This is the main decode function
 # ## It starts off reading in the csv file provided by Order Groove
 # ## Then it it puts those into a dictionary
 # ## then it decodes each of the Credit Card Numbers
-
-
 def decodeOrderGroove(input_file):
     """ Decode OrderGroove function """
+    cipher = AES.new(config.get('OrderGroove', 'hashkey'))
     ogcsv = open_csv(input_file)
-    decodedDictionary = ""
+    decodedDictionary = {}
+    firstRow = True
     for row in ogcsv:
         try:
-            if len(row) > 0:
-                ogsubid = row[5].strip()
+            if(config.getboolean('OrderGroove', 'hasHeaderRow') and firstRow):
+                trace(4, "Skipping header row")
+                firstRow = False
+            elif len(row) > 0:
                 enc_cc_exp_date = row[22].strip()
-                billTo_firstName = row[23].strip()
-                billTo_lastName = row[24].strip()
-                billTo_street1 = row[25].strip()
-                billTo_street2 = row[26].strip()
-                billTo_city = row[27].strip()
-                billTo_state = row[28].strip()
-                billTo_postalCode = row[29].strip()
-                billTo_country = row[31].strip()
-                billTo_phoneNumber = row[32].strip()
-                billTo_email = row[6].strip()
-                card_accountNumber = row[20].strip()
-                card_expirationMonth = "10"
-                card_expirationYear = "2022"
-                card_cardType = decodeCardType(row[21].strip())
-
-                trace(4, "Row is %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s" % (ogsubid, enc_cc_exp_date, billTo_firstName, billTo_lastName, billTo_street1, billTo_city,
-                                                                                                billTo_state, billTo_postalCode, billTo_country, billTo_phoneNumber, billTo_email, card_accountNumber, card_expirationMonth,
-                                                                                                card_expirationYear, card_cardType)
-                      )
-                decodedDictionary += "%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s\n" % (ogsubid, enc_cc_exp_date, billTo_firstName, billTo_lastName, billTo_street1, billTo_street2, billTo_city,
-                                                                                                           billTo_state, billTo_postalCode, billTo_country, billTo_phoneNumber, billTo_email, card_accountNumber, card_expirationMonth,
-                                                                                                           card_expirationYear, card_cardType)
+                card_expirationMonth, card_expirationYear = decodeCardExpDate(decryptOrderGroove(
+                    cipher, enc_cc_exp_date))
+                rowdict = {
+                    "ogsubid": row[5].strip(),
+                    "enc_cc_exp_date": enc_cc_exp_date,
+                    "billTo_firstName": row[23].strip(),
+                    "billTo_lastName": row[24].strip(),
+                    "billTo_street1": row[25].strip(),
+                    "billTo_street2": row[26].strip(),
+                    "billTo_city": row[27].strip(),
+                    "billTo_state": row[28].strip(),
+                    "billTo_postalCode": row[29].strip()[:5],
+                    "billTo_country": row[31].strip(),
+                    "billTo_phoneNumber": row[32].strip(),
+                    "billTo_email": row[6].strip(),
+                    "card_accountNumber": decryptOrderGroove(
+                        cipher, row[20].strip()),
+                    "card_expirationMonth": card_expirationMonth,
+                    "card_expirationYear": card_expirationYear,
+                    "card_cardType": decodeCardType(row[21].strip())
+                }
+                trace(5, "%s" % rowdict)
+                decodedDictionary[rowdict["ogsubid"] +
+                                  rowdict["card_accountNumber"]] = rowdict
             else:
                 trace(3, "Row length was 0")
-        except ValueError as error:
-            print(error)
+        except Exception as error:
+            print("%s had the following error %s" % (row[5].strip(), error))
     return decodedDictionary
 
 
@@ -111,21 +155,23 @@ def writeOutput(dictionary, ofile):
     # Need to get the header string
     # Note must have number of records
     # s = getHeader(len(dictionary))
-    s = dictionary
-    f.write('%s' % s)
+
+    for key, rowdict in dictionary.items():
+        f.write(formatCyberSourceRecord(rowdict))
+
     # s = getCsvColums()
     # f.write('%s' % s)
     # s = getRecords()
     # f.write('%s' % s)
     f.close()
-    trace(2, 'File was writen with %s' % s)
 
 
 # # This is the main Function for decodeOrderGroove.py
 # #  This is where it all starts. The Main Function
 if __name__ == '__main__':
     # # Set up global variables
-    config = configparser.ConfigParser()
+    # Note: We must use Raw Config Parser to prevent interpolation of '%' and other weird characters
+    config = configparser.RawConfigParser()
     config.read_file(open('./config.ini'))
     inputfile = config.get('Base', 'input_file')
     outputfile = config.get('Base', 'output_file')
