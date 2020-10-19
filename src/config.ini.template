@@ -1,0 +1,12 @@
+[Base]
+output_file : og.out
+input_file : input.csv
+
+[OrderGroove]
+hasHeaderRow : true
+
+[Cybersource]
+header : merchantID=%(merchantid)s, paySubscriptionCreateService_run=true, recurringSubscriptionInfo_frequency=on-demand, purchaseTotals_currency=usd, batchID=%(batchid)s, creationDate=%(date)s, statusEmail=%(email)s,targetAPIVersion=1.159, recordCount=%(recordcount)s,Template=custom
+
+[Debug]
+LogLevel : 3

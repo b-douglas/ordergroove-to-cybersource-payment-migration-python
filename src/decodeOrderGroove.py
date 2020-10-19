@@ -17,7 +17,7 @@ import csv
 import sys
 import base64
 from Crypto.Cipher import AES
-# import time  # For PYthon 2.4
+import time
 # import smtplib
 
 
@@ -100,13 +100,34 @@ def formatCyberSourceRecord(dict):
         raise e
 
 
+def formatCyberSourceCSVHeader(recordCount):
+    """ Function to format the correct CSV Header that Cybersource expects for Batch Upload"""
+    try:
+        d = time.strftime("%Y-%m-%d")
+        batchId = "%s%s" % (config.get(
+            'Cybersource', 'batchPrefix'), time.strftime("%H%M"))
+
+        s = config.get('Cybersource', 'header', vars={
+            "merchantid": config.get('Cybersource', 'merchantId'),
+            "batchid": batchId,
+            "date": d,
+            "email": config.get('Cybersource', 'statusEmail'),
+            "recordCount": recordCount
+        })
+
+        return s + "\n"
+    except Exception as e:
+        raise e
+
 # ## This is the main decode function
 # ## It starts off reading in the csv file provided by Order Groove
 # ## Then it it puts those into a dictionary
 # ## then it decodes each of the Credit Card Numbers
+
+
 def decodeOrderGroove(input_file):
     """ Decode OrderGroove function """
-    cipher = AES.new(config.get('OrderGroove', 'hashkey'))
+    cipher = AES.new(config.get('OrderGroove', 'hashkey', raw=True))
     ogcsv = open_csv(input_file)
     decodedDictionary = {}
     firstRow = True
@@ -152,17 +173,16 @@ def decodeOrderGroove(input_file):
 def writeOutput(dictionary, ofile):
     """ Function that will write the output file for Cybersource """
     f = open(ofile, "w")
-    # Need to get the header string
-    # Note must have number of records
-    # s = getHeader(len(dictionary))
-
+    f.write(formatCyberSourceCSVHeader(len(dictionary)))
+    f.write("\n")
+    f.write(config.get('Cybersource', 'columnNames'))
+    f.write("\n")
     for key, rowdict in dictionary.items():
         f.write(formatCyberSourceRecord(rowdict))
-
-    # s = getCsvColums()
-    # f.write('%s' % s)
-    # s = getRecords()
-    # f.write('%s' % s)
+    f.write("\n")
+    f.write("END,SUM=0")
+    f.write("\n")
+    f.write("\n")
     f.close()
 
 
@@ -171,11 +191,13 @@ def writeOutput(dictionary, ofile):
 if __name__ == '__main__':
     # # Set up global variables
     # Note: We must use Raw Config Parser to prevent interpolation of '%' and other weird characters
-    config = configparser.RawConfigParser()
+    config = configparser.ConfigParser()
     config.read_file(open('./config.ini'))
     inputfile = config.get('Base', 'input_file')
     outputfile = config.get('Base', 'output_file')
     trace(3, "Output file is  %s" % outputfile)
+
+    print(formatCyberSourceCSVHeader(4))
 
     # Open & Decode File
     decodedDictionary = decodeOrderGroove(inputfile)
