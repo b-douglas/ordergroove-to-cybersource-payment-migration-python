@@ -68,8 +68,7 @@ def decodeCardExpDate(string):
         l = string.strip().split("/")
         if len(l) == 2:
             return l
-        else:
-            raise ValueError("\'%s\' is an invalid month year." % string)
+        raise ValueError("\'%s\' is an invalid month year." % string)
     except Exception as e:
         raise e
 
