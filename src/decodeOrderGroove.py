@@ -86,15 +86,18 @@ def decryptOrderGroove(cipher, encrypted_string):
 def formatCyberSourceRecord(dict):
     """ Function to format a dictionary as a CSV record for Cybersource"""
     try:
-        s = "TRUE, ogsub%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s\n" % (dict["ogsubid"], dict["ogsubid"],
-                                                                                                 dict["enc_cc_exp_date"], dict["billTo_firstName"],
-                                                                                                 dict["billTo_lastName"], dict["billTo_street1"],
-                                                                                                 dict["billTo_street2"], dict["billTo_city"],
-                                                                                                 dict["billTo_state"], dict["billTo_postalCode"],
-                                                                                                 dict["billTo_country"], dict["billTo_phoneNumber"],
-                                                                                                 dict["billTo_email"], dict["card_accountNumber"],
-                                                                                                 dict["card_expirationMonth"],
-                                                                                                 dict["card_expirationYear"], dict["card_cardType"])
+        s = "TRUE, ogsub%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s\n" % (dict["ogsubid"], dict["ogsubid"], dict["ogpayid"],
+                                                                                                     dict["enc_cc_exp_date"], dict[
+                                                                                                         "billTo_firstName"],
+                                                                                                     dict["billTo_lastName"], dict["billTo_street1"],
+                                                                                                     dict["billTo_street2"], dict["billTo_city"],
+                                                                                                     dict["billTo_state"], dict["billTo_postalCode"],
+                                                                                                     dict["billTo_country"], dict[
+                                                                                                         "billTo_phoneNumber"],
+                                                                                                     dict["billTo_email"], dict[
+                                                                                                         "card_accountNumber"],
+                                                                                                     dict["card_expirationMonth"],
+                                                                                                     dict["card_expirationYear"], dict["card_cardType"])
         return s
     except Exception as e:
         raise e
@@ -127,7 +130,8 @@ def formatCyberSourceCSVHeader(recordCount):
 
 def decodeOrderGroove(input_file):
     """ Decode OrderGroove function """
-    cipher = AES.new(config.get('OrderGroove', 'hashkey', raw=True))
+    cipher = AES.new(config.get(
+        'OrderGroove', 'hashkey', raw=True).encode("ascii"), AES.MODE_ECB)
     ogcsv = open_csv(input_file)
     decodedDictionary = {}
     firstRow = True
@@ -143,6 +147,7 @@ def decodeOrderGroove(input_file):
                 rowdict = {
                     "ogsubid": row[5].strip(),
                     "enc_cc_exp_date": enc_cc_exp_date,
+                    "ogpayid": row[17].strip(),
                     "billTo_firstName": row[23].strip(),
                     "billTo_lastName": row[24].strip(),
                     "billTo_street1": row[25].strip(),
