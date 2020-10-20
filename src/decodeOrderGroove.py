@@ -66,10 +66,10 @@ def decodeCardExpDate(string):
     """ Function to strip and split month as a list"""
     try:
         l = string.strip().split("/")
-        if len(l) != 2:
-            raise ValueError("\'%s\' is an invalid month year." % string)
-        else:
+        if len(l) == 2:
             return l
+        else:
+            raise ValueError("\'%s\' is an invalid month year." % string)
     except Exception as e:
         raise e
 
@@ -83,21 +83,22 @@ def decryptOrderGroove(cipher, encrypted_string):
         raise e
 
 
-def formatCyberSourceRecord(dict):
+def formatCyberSourceRecord(dct):
     """ Function to format a dictionary as a CSV record for Cybersource"""
     try:
-        s = "TRUE, ogsub%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s\n" % (dict["ogsubid"], dict["ogsubid"], dict["ogpayid"],
-                                                                                                     dict["enc_cc_exp_date"], dict[
-                                                                                                         "billTo_firstName"],
-                                                                                                     dict["billTo_lastName"], dict["billTo_street1"],
-                                                                                                     dict["billTo_street2"], dict["billTo_city"],
-                                                                                                     dict["billTo_state"], dict["billTo_postalCode"],
-                                                                                                     dict["billTo_country"], dict[
-                                                                                                         "billTo_phoneNumber"],
-                                                                                                     dict["billTo_email"], dict[
-                                                                                                         "card_accountNumber"],
-                                                                                                     dict["card_expirationMonth"],
-                                                                                                     dict["card_expirationYear"], dict["card_cardType"])
+        s = "TRUE,ogsub%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n" % (dct["ogsubid"], dct["ogsubid"], dct["ogpayid"],
+                                                                                      dct["enc_cc_exp_date"],
+                                                                                      int(
+                                                                                          dct["card_cardType"]),
+                                                                                      dct["billTo_firstName"], dct["billTo_lastName"],
+                                                                                      dct["billTo_street1"],
+                                                                                      dct["billTo_street2"], dct["billTo_city"],
+                                                                                      dct["billTo_state"], dct["billTo_postalCode"],
+                                                                                      dct["billTo_country"],
+                                                                                      dct["billTo_phoneNumber"],
+                                                                                      dct["billTo_email"], dct["card_accountNumber"],
+                                                                                      dct["card_expirationMonth"],
+                                                                                      dct["card_expirationYear"], dct["card_cardType"])
         return s
     except Exception as e:
         raise e
@@ -166,7 +167,7 @@ def decodeOrderGroove(input_file):
                 }
                 trace(5, "%s" % rowdict)
                 decodedDictionary[rowdict["ogsubid"] +
-                                  rowdict["card_accountNumber"]] = rowdict
+                                  rowdict["ogpayid"]] = rowdict
             else:
                 trace(3, "Row length was 0")
         except Exception as error:
