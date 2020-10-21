@@ -18,7 +18,6 @@ import sys
 import base64
 from Crypto.Cipher import AES
 import time
-# import smtplib
 
 
 # ## Function to open a file as a csv
@@ -122,14 +121,15 @@ def formatCyberSourceCSVHeader(recordCount):
     except Exception as e:
         raise e
 
-# ## This is the main decode function
-# ## It starts off reading in the csv file provided by Order Groove
-# ## Then it it puts those into a dictionary
-# ## then it decodes each of the Credit Card Numbers
-
 
 def decodeOrderGroove(input_file):
-    """ Decode OrderGroove function """
+    """ Decode OrderGroove function
+
+    This is the main decode function
+    It starts off reading in the csv file provided by Order Groove
+    Then it it puts those into a dictionary
+    then it decodes each of the Credit Card Numbers
+    """
     cipher = AES.new(config.get(
         'OrderGroove', 'hashkey', raw=True).encode("ascii"), AES.MODE_ECB)
     ogcsv = open_csv(input_file)
@@ -199,10 +199,8 @@ if __name__ == '__main__':
     config = configparser.ConfigParser()
     config.read_file(open('./config.ini'))
     inputfile = config.get('Base', 'input_file')
-    outputfile = config.get('Base', 'output_file')
+    outputfile = config.get('Base', 'tocyb_file')
     trace(3, "Output file is  %s" % outputfile)
-
-    print(formatCyberSourceCSVHeader(4))
 
     # Open & Decode File
     decodedDictionary = decodeOrderGroove(inputfile)

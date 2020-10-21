@@ -1,17 +1,20 @@
 [Base]
-output_file : og.out
+tocyb_file : tocyb.csv
 input_file : input.csv
+fromcyb_file : fromcyb.csv
+toog_file : toog.csv
 
 [OrderGroove]
 hashkey : %ABCDEF12345%NOTREAL
 hasHeaderRow : true
+outputColumnNames : customerId,cybersourceToken,ccExpDate,ccType,OGPublicPayId,cybstatus_optional
 
 [Cybersource]
 header : merchantID=%(merchantid)s,paySubscriptionCreateService_run=true,recurringSubscriptionInfo_frequency=on-demand,purchaseTotals_currency=usd,batchID=%(batchid)s,creationDate=%(date)s,statusEmail=%(email)s,targetAPIVersion=1.159,recordCount=%(recordcount)s,Template=custom
 merchantId : notreal
 statusEmail : not.real@test.com
-columnNames : paySubscriptionCreateService_disableAutoAuth,merchantReferenceCode,merchantDefinedData_field1,merchantDefinedData_field2,merchantDefinedData_field3,billTo_firstName,billTo_lastName,billTo_street1,billTo_street2,billTo_city,billTo_state,billTo_postalCode,billTo_country,billTo_phoneNumber,billTo_email,card_accountNumber,card_expirationMonth,card_expirationYear,card_cardType
-batchPrefix : 0293
+columnNames : paySubscriptionCreateService_disableAutoAuth,merchantReferenceCode,merchantDefinedData_field1,merchantDefinedData_field2,merchantDefinedData_field3,merchantDefinedData_field4,billTo_firstName,billTo_lastName,billTo_street1,billTo_street2,billTo_city,billTo_state,billTo_postalCode,billTo_country,billTo_phoneNumber,billTo_email,card_accountNumber,card_expirationMonth,card_expirationYear,card_cardType
+batchPrefix : 0295
 maxrecords : 2000
 
 [Debug]
