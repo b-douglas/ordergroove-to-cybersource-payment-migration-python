@@ -33,11 +33,11 @@ def trace(level, string):
         sys.stdout.flush()
 
 
-def formatOGRecord(dict):
+def formatOGRecord(dct):
     """ Function to format a dictionary as a CSV record for OrderGroove"""
     try:
-        s = "%s,%s,%s,%s,%s\n" % (dict["ogsubid"], dict["cybtoken"],
-                                  dict["enc_cc_exp_date"], dict["card_cardType"], dict["ogpayid"])
+        s = "%s,%s,%s,%s,%s\n" % (dct["ogsubid"], dct["cybtoken"],
+                                  dct["enc_cc_exp_date"], dct["card_cardType"], dct["ogpayid"])
         return s
     except Exception as e:
         raise e
