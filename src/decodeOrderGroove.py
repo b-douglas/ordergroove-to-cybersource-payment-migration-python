@@ -23,10 +23,14 @@ import time
 # ## Function to open a file as a csv
 # ##  All of the files are treated as a Csv, whether they are true CSVs or not.
 # ## The reason for this is so that if a file needs more columns we have that ability
-def open_csv(fname):
+def open_csv(fname, t="r", fieldnames=""):
     """ Function to open a csv file """
-    fhand = open(fname, "r")
-    csvfile = csv.reader(fhand)
+    fhand = open(fname, t)
+    if t == "r":
+        csvfile = csv.DictReader(fhand, dialect='excel')
+    else:
+        csvfile = csv.DictWriter(
+            fhand, dialect='excel', quoting=csv.QUOTE_NONE, fieldnames=fieldnames)
     return csvfile
 
 
@@ -81,27 +85,6 @@ def decryptOrderGroove(cipher, encrypted_string):
         raise e
 
 
-def formatCyberSourceRecord(dct):
-    """ Function to format a dictionary as a CSV record for Cybersource"""
-    try:
-        s = "TRUE,ogsub%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n" % (dct["ogsubid"], dct["ogsubid"], dct["ogpayid"],
-                                                                                      dct["enc_cc_exp_date"],
-                                                                                      int(
-                                                                                          dct["card_cardType"]),
-                                                                                      dct["billTo_firstName"], dct["billTo_lastName"],
-                                                                                      dct["billTo_street1"],
-                                                                                      dct["billTo_street2"], dct["billTo_city"],
-                                                                                      dct["billTo_state"], dct["billTo_postalCode"],
-                                                                                      dct["billTo_country"],
-                                                                                      dct["billTo_phoneNumber"],
-                                                                                      dct["billTo_email"], dct["card_accountNumber"],
-                                                                                      dct["card_expirationMonth"],
-                                                                                      dct["card_expirationYear"], dct["card_cardType"])
-        return s
-    except Exception as e:
-        raise e
-
-
 def formatCyberSourceCSVHeader(recordCount):
     """ Function to format the correct CSV Header that Cybersource expects for Batch Upload"""
     try:
@@ -134,43 +117,43 @@ def decodeOrderGroove(input_file):
         'OrderGroove', 'hashkey', raw=True).encode("ascii"), AES.MODE_ECB)
     ogcsv = open_csv(input_file)
     decodedDictionary = {}
-    firstRow = True
     for row in ogcsv:
         try:
-            if(config.getboolean('OrderGroove', 'hasHeaderRow') and firstRow):
-                trace(4, "Skipping header row")
-                firstRow = False
-            elif len(row) > 0:
-                enc_cc_exp_date = row[22].strip()
+            if len(row) > 0:
+                enc_cc_exp_date = row["CC Expiration Date"].strip()
                 card_expirationMonth, card_expirationYear = decodeCardExpDate(decryptOrderGroove(
                     cipher, enc_cc_exp_date))
                 rowdict = {
-                    "ogsubid": row[5].strip(),
-                    "enc_cc_exp_date": enc_cc_exp_date,
-                    "ogpayid": row[17].strip(),
-                    "billTo_firstName": row[23].strip(),
-                    "billTo_lastName": row[24].strip(),
-                    "billTo_street1": row[25].strip(),
-                    "billTo_street2": row[26].strip(),
-                    "billTo_city": row[27].strip(),
-                    "billTo_state": row[28].strip(),
-                    "billTo_postalCode": row[29].strip()[:5],
-                    "billTo_country": row[31].strip(),
-                    "billTo_phoneNumber": row[32].strip(),
-                    "billTo_email": row[6].strip(),
+                    "paySubscriptionCreateService_disableAutoAuth": "TRUE",
+                    "merchantReferenceCode": "ogsub" + row["OG Customer ID"].strip() + row["OG Public Payment ID"].strip()[:5],
+                    "merchantDefinedData_field1": row["OG Customer ID"].strip(),
+                    "merchantDefinedData_field2": enc_cc_exp_date,
+                    "merchantDefinedData_field3": int(decodeCardType(row["CC Type"].strip())),
+                    "merchantDefinedData_field4": row["OG Public Payment ID"].strip(),
+                    "billTo_firstName": row["Billing First"].strip(),
+                    "billTo_lastName": row["Billing Last"].strip(),
+                    "billTo_street1": row["Billing Address 1"].strip(),
+                    "billTo_street2": row["Billing Address 2"].strip(),
+                    "billTo_city": row["Billing City"].strip(),
+                    "billTo_state": row["Billing State"].strip(),
+                    "billTo_postalCode": row["Billing Zip"].strip()[:5],
+                    "billTo_country": row["Billing Country"].strip(),
+                    "billTo_phoneNumber": row["Billing Phone"].strip(),
+                    "billTo_email": row["Email Address"].strip(),
                     "card_accountNumber": decryptOrderGroove(
-                        cipher, row[20].strip()),
+                        cipher, row["CC Number"].strip()),
                     "card_expirationMonth": card_expirationMonth,
                     "card_expirationYear": card_expirationYear,
-                    "card_cardType": decodeCardType(row[21].strip())
+                    "card_cardType": decodeCardType(row["CC Type"].strip())
                 }
                 trace(5, "%s" % rowdict)
-                decodedDictionary[rowdict["ogsubid"] +
-                                  rowdict["ogpayid"]] = rowdict
+                decodedDictionary[row["OG Public Payment ID"].strip()
+                                  ] = rowdict
             else:
                 trace(3, "Row length was 0")
         except Exception as error:
-            print("%s had the following error %s" % (row[5].strip(), error))
+            print("Error! %s had the following error %s" %
+                  (row["OG Public Payment ID"], error))
     return decodedDictionary
 
 
@@ -180,15 +163,16 @@ def writeOutput(dictionary, ofile):
     f = open(ofile, "w")
     f.write(formatCyberSourceCSVHeader(len(dictionary)))
     f.write("\n")
-    f.write(config.get('Cybersource', 'columnNames'))
-    f.write("\n")
+    csvfile = csv.DictWriter(f, dialect='excel', quoting=csv.QUOTE_NONE,
+                             fieldnames=config.get('Cybersource', 'columnNames').split(','))
+    csvfile.writeheader()
     for key, rowdict in dictionary.items():
-        f.write(formatCyberSourceRecord(rowdict))
+        csvfile.writerow(rowdict)
     f.write("\n")
     f.write("END,SUM=0")
     f.write("\n")
     f.write("\n")
-    f.close()
+    f.close
 
 
 # # This is the main Function for decodeOrderGroove.py
