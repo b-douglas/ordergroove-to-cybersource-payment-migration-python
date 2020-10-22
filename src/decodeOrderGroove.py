@@ -172,7 +172,7 @@ def writeOutput(dictionary, ofile):
     f.write("END,SUM=0")
     f.write("\n")
     f.write("\n")
-    f.close
+    f.close()
 
 
 # # This is the main Function for decodeOrderGroove.py

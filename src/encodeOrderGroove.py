@@ -19,10 +19,13 @@ import sys
 # ## Function to open a file as a csv
 # ##  All of the files are treated as a Csv, whether they are true CSVs or not.
 # ## The reason for this is so that if a file needs more columns we have that ability
-def open_csv(fname):
+def open_csv(fname, t="r"):
     """ Function to open a csv file """
-    fhand = open(fname, "r")
-    csvfile = csv.reader(fhand)
+    fhand = open(fname, t)
+    if t == "r":
+        csvfile = csv.reader(fhand, dialect='excel')
+    else:
+        csvfile = csv.writer(fhand, dialect='excel')
     return csvfile
 
 
@@ -97,7 +100,7 @@ def decodeCybersource(input_file):
 # ## Output Writer
 def writeOutput(rows, ofile):
     """ Function that will write the output file for Cybersource """
-    f = open(ofile, "w")
+    f = open_csv(ofile, "w")
     f.write(formatOGColumnNames())
     for rowdict in rows:
         f.write(formatOGRecord(rowdict))
