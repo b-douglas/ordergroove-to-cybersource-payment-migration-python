@@ -11,21 +11,21 @@ An additional quick script used encode the CSV that OrderGroove expects
 
 import configparser
 import csv
-# import os
-# import re
 import sys
 
 
 # ## Function to open a file as a csv
 # ##  All of the files are treated as a Csv, whether they are true CSVs or not.
 # ## The reason for this is so that if a file needs more columns we have that ability
-def open_csv(fname, t="r"):
+def open_csv(fname, t="r", fieldnames=""):
     """ Function to open a csv file """
     fhand = open(fname, t)
     if t == "r":
-        csvfile = csv.reader(fhand, dialect='excel')
+        csvfile = csv.DictReader(
+            fhand, dialect='excel', quoting=csv.QUOTE_NONE)
     else:
-        csvfile = csv.writer(fhand, dialect='excel')
+        csvfile = csv.DictWriter(
+            fhand, dialect='excel', quoting=csv.QUOTE_NONE, fieldnames=fieldnames)
     return csvfile
 
 
@@ -34,25 +34,6 @@ def trace(level, string):
     if level <= int(config.get('Debug', 'LogLevel')):
         print('%s' % string)
         sys.stdout.flush()
-
-
-def formatOGRecord(dct):
-    """ Function to format a dictionary as a CSV record for OrderGroove"""
-    try:
-        s = "%s,%s,%s,%s,%s\n" % (dct["ogsubid"], dct["cybtoken"],
-                                  dct["enc_cc_exp_date"], dct["card_cardType"], dct["ogpayid"])
-        return s
-    except Exception as e:
-        raise e
-
-
-def formatOGColumnNames():
-    """ Function to format the correct CSV Header that OrderGroove expects"""
-    try:
-        s = config.get('OrderGroove', 'outputColumnNames')
-        return s + "\n"
-    except Exception as e:
-        raise e
 
 
 def decodeCybersource(input_file):
@@ -65,22 +46,17 @@ def decodeCybersource(input_file):
     ogcsv = open_csv(input_file)
     goodRows = []
     badRows = []
-    firstRow = True
     for row in ogcsv:
         try:
-            if(config.getboolean('OrderGroove', 'hasHeaderRow') and firstRow):
-                trace(4, "Skipping header row")
-                firstRow = False
-            elif len(row) > 0:
-
-                status = row[17].strip()
+            if len(row) > 0:
+                status = row["reason_code"].strip()
 
                 rowdict = {
-                    "ogsubid": row[27].strip(),
-                    "cybtoken": row[3].strip(),
-                    "enc_cc_exp_date": row[28].strip(),
-                    "card_cardType": row[30].strip(),
-                    "ogpayid": row[29].strip()
+                    "OGPublicPaymentID": row["merchant_defined_data4"].strip(),
+                    "cybersourceToken": row["request_id"].strip(),
+                    "ccExpDate": row["merchant_defined_data2"].strip(),
+                    "ccType": row["merchant_defined_data3"].strip(),
+                    "cybstatus_optional": row["reason_code"].strip()
                 }
 
                 if(status == "100"):
@@ -100,13 +76,11 @@ def decodeCybersource(input_file):
 # ## Output Writer
 def writeOutput(rows, ofile):
     """ Function that will write the output file for Cybersource """
-    f = open_csv(ofile, "w")
-    f.write(formatOGColumnNames())
+    csv = open_csv(ofile, "w", config.get(
+        'OrderGroove', 'outputColumnNames').split(','))
+    csv.writeHeaders()
     for rowdict in rows:
-        f.write(formatOGRecord(rowdict))
-    f.write("\n")
-    f.write("\n")
-    f.close()
+        csv.writerow(rowdict)
 
 
 # # This is the main Function for decodeOrderGroove.py
