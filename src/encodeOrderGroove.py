@@ -22,10 +22,10 @@ def open_csv(fname, t="r", fieldnames=""):
     fhand = open(fname, t)
     if t == "r":
         csvfile = csv.DictReader(
-            fhand, dialect='excel', quoting=csv.QUOTE_NONE)
+            fhand, dialect='excel', quoting=csv.QUOTE_ALL)
     else:
         csvfile = csv.DictWriter(
-            fhand, dialect='excel', quoting=csv.QUOTE_NONE, fieldnames=fieldnames)
+            fhand, dialect='excel', quoting=csv.QUOTE_ALL, fieldnames=fieldnames)
     return csvfile
 
 
@@ -60,16 +60,16 @@ def decodeCybersource(input_file):
                 }
 
                 if(status == "100"):
-                    trace(2, "good - %s %s" % (rowdict, status))
+                    trace(2, "good - %s" % rowdict)
                     goodRows.append(rowdict)
                 else:
-                    rowdict["ogpayid"] = row[29].strip() + "," + status
                     trace(2, "bad - %s" % rowdict)
                     badRows.append(rowdict)
             else:
-                trace(3, "Row length was 0")
+                trace(1, "Row length was 0")
         except Exception as error:
-            print("%s had the following error %s" % (row[5].strip(), error))
+            print("%s had the following error %s" %
+                  (row["request_id"].strip(), error))
     return goodRows, badRows
 
 
@@ -78,7 +78,7 @@ def writeOutput(rows, ofile):
     """ Function that will write the output file for Cybersource """
     csv = open_csv(ofile, "w", config.get(
         'OrderGroove', 'outputColumnNames').split(','))
-    csv.writeHeaders()
+    csv.writeheader()
     for rowdict in rows:
         csv.writerow(rowdict)
 
@@ -97,6 +97,9 @@ if __name__ == '__main__':
     # Open & Decode File
     goodrows, badrows = decodeCybersource(inputfile)
 
+    print(goodrows)
+    print("######")
+    print(badrows)
     # Write good file
     writeOutput(goodrows, outputfile)
 

@@ -7,7 +7,7 @@ toog_file : toog.csv
 [OrderGroove]
 hashkey : %ABCDEF12345%NOTREAL
 hasHeaderRow : true
-outputColumnNames : customerId,cybersourceToken,ccExpDate,ccType,OGPublicPayId,cybstatus_optional
+outputColumnNames : OGPublicPaymentID,cybersourceToken,ccExpDate,ccType,cybstatus_optional
 
 [Cybersource]
 header : merchantID=%(merchantid)s,paySubscriptionCreateService_run=true,recurringSubscriptionInfo_frequency=on-demand,purchaseTotals_currency=usd,batchID=%(batchid)s,creationDate=%(date)s,statusEmail=%(email)s,targetAPIVersion=1.159,recordCount=%(recordcount)s,Template=custom
