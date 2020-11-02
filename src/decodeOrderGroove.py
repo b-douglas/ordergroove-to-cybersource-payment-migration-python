@@ -163,11 +163,14 @@ def writeOutput(dictionary, ofile):
     f = open(ofile, "w")
     f.write(formatCyberSourceCSVHeader(len(dictionary)))
     f.write("\n")
-    csvfile = csv.DictWriter(f, dialect='excel', quoting=csv.QUOTE_NONE,
+    csvfile = csv.DictWriter(f, dialect='excel',
                              fieldnames=config.get('Cybersource', 'columnNames').split(','))
     csvfile.writeheader()
     for key, rowdict in dictionary.items():
-        csvfile.writerow(rowdict)
+        try:
+            csvfile.writerow(rowdict)
+        except Exception as error:
+            print("Error! %s had the following error %s" % (error, rowdict))
     f.write("\n")
     f.write("END,SUM=0")
     f.write("\n")
