@@ -89,18 +89,26 @@ def formatCyberSourceCSVHeader(recordCount):
     """ Function to format the correct CSV Header that Cybersource expects for Batch Upload"""
     try:
         d = time.strftime("%Y-%m-%d")
-        batchId = "%s%s" % (config.get(
-            'Cybersource', 'batchPrefix'), time.strftime("%H%M"))
-
         s = config.get('Cybersource', 'header', vars={
             "merchantid": config.get('Cybersource', 'merchantId'),
-            "batchid": batchId,
+            "batchid": config.get('Cybersource', 'batchId'),
             "date": d,
             "email": config.get('Cybersource', 'statusEmail'),
             "recordCount": recordCount
         })
 
         return s + "\n"
+    except Exception as e:
+        raise e
+
+
+def formatCyberSourceBatchId():
+    """ Function to format the Cybersource Batch Id """
+    try:
+        batchId = "%s%s" % (config.get(
+            'Cybersource', 'batchPrefix'), time.strftime("%H%M"))
+
+        config.set('Cybersource', 'batchId', batchId)
     except Exception as e:
         raise e
 
@@ -186,7 +194,10 @@ if __name__ == '__main__':
     config = configparser.ConfigParser()
     config.read_file(open('./config.ini'))
     inputfile = config.get('Base', 'input_file')
-    outputfile = config.get('Base', 'tocyb_file')
+    formatCyberSourceBatchId()
+    outputfile = "%s.%s.%s.csv" % (config.get('Base', 'tocyb_file_prefix'),
+                                   config.get('Cybersource', 'merchantId'),
+                                   config.get('Cybersource', 'batchId'))
     trace(3, "Output file is  %s" % outputfile)
 
     # Open & Decode File

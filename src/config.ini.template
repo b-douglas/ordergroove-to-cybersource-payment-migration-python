@@ -1,5 +1,5 @@
 [Base]
-tocyb_file : tocyb.csv
+tocyb_file_prefix : batchUpload
 input_file : input.csv
 fromcyb_file : fromcyb.csv
 toog_file : toog.csv
@@ -14,7 +14,7 @@ header : merchantID=%(merchantid)s,paySubscriptionCreateService_run=true,recurri
 merchantId : notreal
 statusEmail : not.real@test.com
 columnNames : paySubscriptionCreateService_disableAutoAuth,merchantReferenceCode,merchantDefinedData_field1,merchantDefinedData_field2,merchantDefinedData_field3,merchantDefinedData_field4,billTo_firstName,billTo_lastName,billTo_street1,billTo_street2,billTo_city,billTo_state,billTo_postalCode,billTo_country,billTo_phoneNumber,billTo_email,card_accountNumber,card_expirationMonth,card_expirationYear,card_cardType
-batchPrefix : 0295
+batchPrefix : 0316
 maxrecords : 2000
 
 [Debug]
