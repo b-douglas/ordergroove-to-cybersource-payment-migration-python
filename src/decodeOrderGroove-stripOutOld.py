@@ -1,11 +1,14 @@
 #!/usr/bin/python
 """
-Created on Oct 08, 2020
+Created on Nov 18, 2020
 
-decodeOrderGroove.py
+decodeOrderGroove-stripOutOld.py
 
 Script was created to decrypt credit card info
 and then create file to be sent to OrderGroove for processing
+
+In addition, this script creates a global dictionary of past payment Ids and if it exists in the existing.
+Then we skip it.
 
 @author: dougrob
 """
@@ -131,13 +134,14 @@ def decodeOrderGroove(input_file):
                 enc_cc_exp_date = row["CC Expiration Date"].strip()
                 card_expirationMonth, card_expirationYear = decodeCardExpDate(decryptOrderGroove(
                     cipher, enc_cc_exp_date))
+                payId = row["OG Public Payment ID"].strip()
                 rowdict = {
                     "paySubscriptionCreateService_disableAutoAuth": "TRUE",
-                    "merchantReferenceCode": "ogsub" + row["OG Customer ID"].strip() + row["OG Public Payment ID"].strip()[:5],
+                    "merchantReferenceCode": "ogsub" + row["OG Customer ID"].strip() + payId[:5],
                     "merchantDefinedData_field1": row["OG Customer ID"].strip(),
                     "merchantDefinedData_field2": enc_cc_exp_date,
                     "merchantDefinedData_field3": int(decodeCardType(row["CC Type"].strip())),
-                    "merchantDefinedData_field4": row["OG Public Payment ID"].strip(),
+                    "merchantDefinedData_field4": payId,
                     "billTo_firstName": row["Billing First"].strip(),
                     "billTo_lastName": row["Billing Last"].strip(),
                     "billTo_street1": row["Billing Address 1"].strip(),
@@ -157,13 +161,19 @@ def decodeOrderGroove(input_file):
                 trace(5, "%s" % rowdict)
                 if int(card_expirationYear) <= 2019:
                     trace(5, "Skipping %s,%s for %s" % (card_expirationYear,
-                                               card_expirationMonth, row["OG Customer ID"].strip()))
-                elif int(card_expirationYear) == 2020  and int(card_expirationMonth) < 11:
-                    trace(2, "Skipping %s,%s for %s" % (card_expirationYear,
-                                               card_expirationMonth, row["OG Customer ID"].strip()))
+                                                        card_expirationMonth, row["OG Customer ID"].strip()))
+                elif int(card_expirationYear) == 2020 and int(card_expirationMonth) < 11:
+                    trace(5, "Skipping %s,%s for %s" % (card_expirationYear,
+                                                        card_expirationMonth, row["OG Customer ID"].strip()))
+                elif payId in existingPayments and int(existingPayments[payId]) >= 152:
+                    trace(5, "existPay- %s,%s,%s" %
+                          (existingPayments[payId], row["OG Customer ID"].strip(), payId))
+                elif payId in existingPayments and int(existingPayments[payId]) < 152:
+                    trace(5, "cybstatus_optional was  %s for %s" %
+                          (existingPayments[payId], payId))
+                    decodedDictionary[payId] = rowdict
                 else:
-                    decodedDictionary[row["OG Public Payment ID"].strip()
-                                      ] = rowdict
+                    decodedDictionary[payId] = rowdict
             else:
                 trace(3, "Row length was 0")
         except Exception as error:
@@ -172,7 +182,25 @@ def decodeOrderGroove(input_file):
     return decodedDictionary
 
 
+def getExisting(efile):
+    """ A function that will walk through our previous submissions and get all the existing payments """
+    excsv = open_csv(efile)
+    existingPayIds = {}
+    for row in excsv:
+        try:
+            if len(row) > 0:
+                existingPayIds[row["OGPublicPaymentID"].strip(
+                )] = row["cybstatus_optional"].strip()
+            else:
+                trace(3, "Row length was 0")
+        except Exception as error:
+            print("getExisting Error! %s had the following error %s" %
+                  (row["OGPublicPaymentID"], error))
+    return existingPayIds
+
 # ## Output Writer
+
+
 def writeOutput(dictionary, ofile):
     """ Function that will write the output file for Cybersource """
     f = open(ofile, "w")
@@ -206,6 +234,8 @@ if __name__ == '__main__':
                                    config.get('Cybersource', 'merchantId'),
                                    config.get('Cybersource', 'batchId'))
     trace(3, "Output file is  %s" % outputfile)
+
+    existingPayments = getExisting('./old.csv')
 
     # Open & Decode File
     decodedDictionary = decodeOrderGroove(inputfile)
