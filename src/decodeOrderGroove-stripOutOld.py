@@ -160,16 +160,22 @@ def decodeOrderGroove(input_file):
                 }
                 trace(5, "%s" % rowdict)
                 if int(card_expirationYear) <= 2019:
-                    trace(5, "Skipping %s,%s for %s" % (card_expirationYear,
-                                                        card_expirationMonth, row["OG Customer ID"].strip()))
+                    trace(2, "expiredPay- %s,%s,%s" % (card_expirationYear + "/" +
+                                                        card_expirationMonth, row["OG Customer ID"].strip(), payId))
                 elif int(card_expirationYear) == 2020 and int(card_expirationMonth) < 11:
-                    trace(5, "Skipping %s,%s for %s" % (card_expirationYear,
-                                                        card_expirationMonth, row["OG Customer ID"].strip()))
+                    trace(2, "expiredPay- %s,%s,%s" % (card_expirationYear+ "/" +
+                                                        card_expirationMonth, row["OG Customer ID"].strip(), payId))
+                elif payId in existingPayments and existingPayments[payId] == "":
+                    trace(2, "existPay- "",%s,%s" %
+                          (row["OG Customer ID"].strip(), payId))
                 elif payId in existingPayments and int(existingPayments[payId]) >= 152:
-                    trace(5, "existPay- %s,%s,%s" %
+                    trace(2, "existPay- %s,%s,%s" %
+                          (existingPayments[payId], row["OG Customer ID"].strip(), payId))
+                elif payId in existingPayments and int(existingPayments[payId]) == 100:
+                    trace(2, "existPay- %s,%s,%s" %
                           (existingPayments[payId], row["OG Customer ID"].strip(), payId))
                 elif payId in existingPayments and int(existingPayments[payId]) < 152:
-                    trace(5, "cybstatus_optional was  %s for %s" %
+                    trace(2, "cybstatus_optional was  %s for %s" %
                           (existingPayments[payId], payId))
                     decodedDictionary[payId] = rowdict
                 else:
