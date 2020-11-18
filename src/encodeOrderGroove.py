@@ -80,7 +80,7 @@ def writeOutput(rows, ofile):
         'OrderGroove', 'outputColumnNames').split(','))
     csv.writeheader()
     for k in rows.keys():
-        csv.writerow(rowdict[k])
+        csv.writerow(rows[k])
 
 
 # # This is the main Function for decodeOrderGroove.py
