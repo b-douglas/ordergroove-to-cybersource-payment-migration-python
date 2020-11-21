@@ -168,13 +168,13 @@ def decodeOrderGroove(input_file):
                 elif payId in existingPayments and existingPayments[payId] == "":
                     trace(2, "existPay- "",%s,%s" %
                           (row["OG Customer ID"].strip(), payId))
-                elif payId in existingPayments and int(existingPayments[payId]) >= 152:
+                elif payId in existingPayments and int(existingPayments[payId]) >= 52:
                     trace(2, "existPay- %s,%s,%s" %
                           (existingPayments[payId], row["OG Customer ID"].strip(), payId))
                 elif payId in existingPayments and int(existingPayments[payId]) == 100:
                     trace(2, "existPay- %s,%s,%s" %
                           (existingPayments[payId], row["OG Customer ID"].strip(), payId))
-                elif payId in existingPayments and int(existingPayments[payId]) < 152:
+                elif payId in existingPayments and int(existingPayments[payId]) < 52:
                     trace(2, "cybstatus_optional was  %s for %s" %
                           (existingPayments[payId], payId))
                     decodedDictionary[payId] = rowdict
