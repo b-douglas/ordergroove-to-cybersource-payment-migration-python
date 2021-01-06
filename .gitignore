@@ -140,4 +140,7 @@ dmypy.json
 *.out
 *.bad
 
+# Prevent old files out of repo
+archive
+
 
