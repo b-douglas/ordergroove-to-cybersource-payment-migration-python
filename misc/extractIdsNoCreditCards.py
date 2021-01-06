@@ -2,10 +2,9 @@
 """
 Created on Oct 08, 2020
 
-decodeOrderGroove.py
+extractIdsNoCreditCards.py
 
-Script was created to decrypt credit card info
-and then create file to be sent to OrderGroove for processing
+Script runs and extracts the records WITHOUT decrypting the credit card numbers.
 
 @author: dougrob
 """
@@ -63,6 +62,7 @@ def decodeCardType(string):
         raise ValueError("Credit Card Type does not match!")
     return typecode
 
+
 def formatCyberSourceCSVHeader(recordCount):
     """ Function to format the correct CSV Header that Cybersource expects for Batch Upload"""
     try:
@@ -81,6 +81,7 @@ def formatCyberSourceCSVHeader(recordCount):
         return s + "\n"
     except Exception as e:
         raise e
+
 
 def decodeOrderGroove(input_file):
     """ Decode OrderGroove function
@@ -136,10 +137,10 @@ def onlyGood(decodedDictionary, input_file):
     for row in ogcsv:
         try:
             if len(row) > 0:
-                #print(row)
+                # print(row)
                 ogpayid = row["OGPublicPaymentID"].strip()
                 status = row["cybstatus_optional"].strip()
-                
+
                 if(status == "100"):
                     #trace(2, "good - %s" % row)
                     if ogpayid in decodedDictionary:
@@ -156,6 +157,8 @@ def onlyGood(decodedDictionary, input_file):
     return goodones
 
 # ## Output Writer
+
+
 def writeOutput(dictionary, ofile):
     """ Function that will write the output file for Cybersource """
     f = open(ofile, "w")
