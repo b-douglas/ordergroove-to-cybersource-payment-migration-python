@@ -4,7 +4,7 @@ Created on Oct 20, 2020
 
 encodeOrderGroove.py
 
-An additional quick script used encode the CSV that OrderGroove expects
+Script was created to encode the CyberSource output file to be processed by OrderGrove file format.
 
 @author: dougrob
 """

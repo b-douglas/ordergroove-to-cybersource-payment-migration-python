@@ -4,8 +4,8 @@ Created on Oct 08, 2020
 
 decodeOrderGroove.py
 
-Script was created to decrypt credit card info
-and then create file to be sent to OrderGroove for processing
+Script was created to decrypt credit card info from OrderGroove
+and then create file to be sent to CyberSource for processing
 
 @author: dougrob
 """
@@ -157,10 +157,10 @@ def decodeOrderGroove(input_file):
                 trace(5, "%s" % rowdict)
                 if int(card_expirationYear) <= 2019:
                     trace(5, "Skipping %s,%s for %s" % (card_expirationYear,
-                                               card_expirationMonth, row["OG Customer ID"].strip()))
-                elif int(card_expirationYear) == 2020  and int(card_expirationMonth) < 11:
+                                                        card_expirationMonth, row["OG Customer ID"].strip()))
+                elif int(card_expirationYear) == 2020 and int(card_expirationMonth) < 11:
                     trace(2, "Skipping %s,%s for %s" % (card_expirationYear,
-                                               card_expirationMonth, row["OG Customer ID"].strip()))
+                                                        card_expirationMonth, row["OG Customer ID"].strip()))
                 else:
                     decodedDictionary[row["OG Public Payment ID"].strip()
                                       ] = rowdict
