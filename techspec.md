@@ -99,17 +99,27 @@ The following steps will need to occur:
 
 ### AES Decryption
 
-For the CC decryption - the file will use the AES encrypted version of the credit card numbers, the same way we provide the data in the order XML we send to Salesforce today. I think you mentioned Python (correct me if I'm wrong) - 
+For the CC decryption - the file will use the AES encrypted version of the credit card numbers.
 
-This is an example we've shared with other merchants in the past on AES encryption with Python, as it would be similarly decrypted:
+The Python script uses the following logic to decrypt.
+
+```
+from Crypto.Cipher import AES
+  def decryptOrderGroove(cipher, encrypted_string):
+    """ Function to decrypt data from OrderGroove using it's cipher """
+    PADDING = '{'
+    try:
+        return cipher.decrypt(base64.b64decode(encrypted_string)).decode('ascii').rstrip(PADDING)
+    except Exception as e:
+        raise e
+```
  
 
 ### CyberSource Tokenization
 
 We had looked at using the CyberSource SOAP toolkit; however, it was felt this was too complex to setup.
 
-Instead, we will use the manual approach.  
-
+Instead, this solutions uses the manual approach.  
 
 For the manual approach, we will use upload a CSV or list of Credit Card numbers, and then the bulk processing will return us back a list of CyberSource Tokens.
 
@@ -131,16 +141,16 @@ Provided are the steps to upload the batch file in the Business Center:
 
 1. Log in to the Business Center,
 
-·     Production: [https://ebc.cybersource.com/ebc2/](https://protect-us.mimecast.com/s/Uz7nCDkxWwi5DZRqpUAoA18?domain=ebc.cybersource.com/)
+·     Production: [https://ebc.cybersource.com/ebc2/](https://ebc.cybersource.com/ebc2/)
 
-·     Test: [https://ebctest.cybersource.com/ebc2](https://protect-us.mimecast.com/s/kZ81CERyWKT3kjQLyiPXylM?domain=ebctest.cybersource.com)
+·     Test: [https://ebctest.cybersource.com/ebc2](https://ebctest.cybersource.com/ebc2)
 
 1. Select Virtual Terminal > Batch Transaction Upload > BATCH UPLOAD > BROWSE the file > SAVE
 
 
 This is also explained starting on page 11 of the provided documentation:
 
-[http://apps.cybersource.com/library/documentation/dev_guides/Offline_Trans_File_Submission/Batch_Upload_ENT.pdf](https://protect-us.mimecast.com/s/a7kRCG6AWwh129Vkntkck0w?domain=apps.cybersource.com)
+[http://apps.cybersource.com/library/documentation/dev_guides/Offline_Trans_File_Submission/Batch_Upload_ENT.pdf](http://apps.cybersource.com/library/documentation/dev_guides/Offline_Trans_File_Submission/Batch_Upload_ENT.pdf)
 
  
 
