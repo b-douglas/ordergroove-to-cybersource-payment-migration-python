@@ -1,0 +1,12 @@
+[Base]
+input_file : input.csv
+output_file: output.csv
+atg_cc_file : export_CC.csv
+atg_ppl_file : export_PPL.csv
+
+[OrderGroove]
+hasHeaderRow : true
+outputColumnNames : OGPaymentID,OGCustomerID,PaymentLabel,TokenID,OGPaymentPublicID,YCCustomerID
+
+[Debug]
+LogLevel : 3
