@@ -17,10 +17,14 @@ A sample config.ini file that contains the options needed for each python script
 
 ## Miscellaneous Scripts
 Here are some additional scripts I had to write to diagnose the issues I had with the process.
-* [misc/decodeOrderGroove-stripOutOld.py](src/decodeOrderGroove-stripOutOld.py)
+* [misc/decodeOrderGroove-stripOutOld.py](misc/decodeOrderGroove-stripOutOld.py)
 The script is similar to the decrypt credit card; however, it adds a dictionary to strip out existing or duplicate records.
-* [misc/extractIdsNoCreditCards.py](src/extractIdsNoCreditCards.py)
+* [misc/extractIdsNoCreditCards.py](misc/extractIdsNoCreditCards.py)
 The script is similar to the decodeOrderGrove, except it does not decrypt the credit card numbers.  I needed that to get a list of subscription ids.
+
+## Combine Scripts
+For another site, I already had the Cybersource Token, so this python just combines what I get from Order Groove.
+* [combine/combineOrderGrooveATG.py](combine/combineOrderGrooveATG.py)
 
 ## Documentation
 Please read the attached tech-spec to get more details on the design.
